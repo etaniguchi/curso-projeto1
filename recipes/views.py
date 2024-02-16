@@ -1,14 +1,73 @@
-from django.shortcuts import render
-from utils.recipes.factory import make_recipe
+# from django.contrib import messages
+from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import render, get_list_or_404, get_object_or_404
+# from utils.recipes.factory import make_recipe
+from .models import Recipe
 
 def home(request):
+    recipes = Recipe.objects.filter(
+        is_published = True,
+    ).order_by('-id')
+    
+    # messages.success(request, 'Epa, você foi pesquisar algo que eu vi.')
+    # messages.warning(request, 'Epa, epa.. cuidado ai.')
+    # messages.error(request, 'Opa, deu erro!!!')
+
     return render(request, 'recipes/pages/home.html', context={
-        'recipes': [make_recipe() for _ in range(10)]
+        'recipes': recipes,
+    })
+
+def category(request, category_id):
+    # a função get_list_or_404 já faz o tratamento quando não encontra a categoria
+    recipes = get_list_or_404(
+        Recipe.objects.filter(
+            category__id = category_id,
+            is_published = True,
+        ).order_by('-id')
+    )
+
+    return render(request, 'recipes/pages/category.html', context={
+        'recipes': recipes,
+        'title': f'{recipe[0].category.name} - Category | '
     })
 
 def recipe(request,id):
+    recipe = get_object_or_404(Recipe, 
+                               id=id, 
+                               is_published = True,
+                               )
     return render(request, 'recipes/pages/recipe-view.html', context={
-        'recipe': make_recipe(),
+        'recipe': recipe,
         'is_detail_page': True,
     })
 
+    #return render(request, 'recipes/pages/recipe-view.html', context={
+    #    'recipe': make_recipe(),
+    #    'is_detail_page': True,
+    #})
+
+
+def search(request):
+    search_term = request.GET.get('q','').strip()
+
+    if not search_term:
+        raise Http404()
+    
+    recipes = Recipe.objects.filter(
+        Q(
+            Q(title__icontains = search_term) |
+            Q(description__icontains = search_term),
+        ),
+        is_published = True,
+    ).order_by('-id')
+    
+    return render(request, 'recipes/pages/search.html', context={
+        'page_title': f'Search for "{ search_term }"',
+        'search_term': search_term,
+        'recipes':recipes,
+    })
+    #recipes = Recipe.objects.filter()
+    #return render(request, 'recipes/pages/search.html', context={
+    #    'recipe': recipe,
+    #})
