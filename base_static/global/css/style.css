@@ -328,6 +328,18 @@ h6 {
     color: var(--color-white);
 }
 
+.inline-form {
+    display: inline;
+}
+
+.plaintext-button {
+    display: inline;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-primary);
+}
+
 /* messages */
 .messages-container {
     display: flex;
