@@ -4,8 +4,14 @@ from django.http import Http404
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from utils.pagination import make_pagination
 from .forms import RegisterForm, LoginForm
+from authors.forms.recipe_form import AuthorRecipeForm
+from recipes.models import Recipe
 
+import os
+
+PER_PAGE = int(os.environ.get('PER_PAGE',6))
 
 def register_view(request):
     register_form_data = request.session.get('register_form_data', None)
@@ -82,4 +88,39 @@ def logout_view(request):
 
 @login_required(login_url='authors:login',redirect_field_name='next')
 def dashboard(request):
-    return render(request,'authors/pages/dashboard.html')
+    recipes = Recipe.objects.filter(
+        is_published=False,
+        author=request.user,
+    )
+
+    page_obj, pagination_range = make_pagination(request, recipes, PER_PAGE)
+
+    return render(request,'authors/pages/dashboard.html', context={
+        'recipes': page_obj,
+        'pagination_range': pagination_range,
+    })
+
+
+@login_required(login_url='authors:login',redirect_field_name='next')
+def dashboard_recipe_edit(request, id):
+    recipe = Recipe.objects.filter(
+        is_published=False,
+        author=request.user,
+        pk=id,
+    ).first()
+
+    if not recipe:
+        raise Http404()
+    
+    form = AuthorRecipeForm(
+        data = request.POST or None,
+        instance = recipe,
+    )
+
+    return render(
+        request,
+        'authors/pages/dashboard_recipe.html',
+        context={
+            'form': form,
+        },
+    )

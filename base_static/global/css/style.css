@@ -331,7 +331,9 @@ h6 {
     color: var(--color-error-dark);
 }
 
-.form-content input {
+.form-content input,
+.form-content textarea,
+.form-content select {
     width: 100%;
     padding: 1rem;
     border-radius: 0.4rem;
@@ -353,6 +355,10 @@ h6 {
 
 .inline-form {
     display: inline;
+}
+
+.span-2 {
+    grid-column: span 2;
 }
 
 .plaintext-button {
@@ -419,11 +425,29 @@ h6 {
     margin: 1rem 0;
 }
 
+.author-dashboard-container {
+    max-width: 64rem;
+    text-align: left;
+    padding: var(--spacing-gutter-medium);
+    margin: 0 auto;
+    text-decoration: none;
+}
+
+.author-dashboard-container1 h3,
+.author-dashboard-container1 p,
+.author-dashboard-container1 ul {
+    list-style-type: none;
+    margin: 1rem 0;
+}
 
 /* generics */
 
 .center {
     text-align: center;
+}
+
+.left {
+    text-align: left;
 }
 
 .m-x {
