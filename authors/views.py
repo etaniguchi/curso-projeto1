@@ -145,27 +145,8 @@ def dashboard_recipe_new(request):
         files = request.FILES or None, # no form.html adicionar enctype="multipart/form-data"
     )
 
-    return render(
-        request,
-        'authors/pages/dashboard_recipe.html',
-        context={
-            'form': form,
-            'form_action':reverse('authors:dashboard_recipe_create'),
-        },
-    )
-
-@login_required(login_url='authors:login',redirect_field_name='next')
-def dashboard_recipe_create(request):
-    if not request.POST:
-        raise Http404()
-    
-    form = AuthorRecipeForm(
-        data = request.POST or None,
-        files = request.FILES or None, # no form.html adicionar enctype="multipart/form-data"
-    )
-
     if form.is_valid():
-        recipe = form.save(commit=False)
+        recipe: Recipe = form.save(commit=False)
 
         recipe.author = request.user
         recipe.preparation_steps_is_html = False
@@ -173,6 +154,33 @@ def dashboard_recipe_create(request):
 
         recipe.save()
 
-        messages.success(request, 'Sua receita foi criada com sucesso!')
+        messages.success(request, 'Salvo com sucesso!')
+        return redirect(
+            reverse('authors:dashboard_recipe_edit', args=(recipe.id,))
+        )
+
+    return render(
+        request,
+        'authors/pages/dashboard_recipe.html',
+        context={
+            'form': form,
+            'form_action':reverse('authors:dashboard_recipe_new'),
+        },
+    )
+
+
+@login_required(login_url='authors:login',redirect_field_name='next')
+def dashboard_recipe_delete(request, id):
+    recipe = Recipe.objects.filter(
+        is_published=False,
+        author=request.user,
+        pk=id,
+    ).first()
+
+    if not recipe:
+        raise Http404()
+    
+    recipe.delete()
+    messages.success(request,'Deleted successfully.')
 
     return redirect(reverse('authors:dashboard'))
